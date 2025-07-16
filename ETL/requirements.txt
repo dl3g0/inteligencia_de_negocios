@@ -1,0 +1,3 @@
+mysql-connector-python
+azure-identity
+azure-keyvault-secrets
