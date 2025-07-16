@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerGroups_instanciadocker_workspaceKey": {
+            "type": "SecureString"
+        },
+        "containerGroups_instanciadocker_name": {
+            "defaultValue": "instanciadocker",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2024-10-01-preview",
+            "name": "[parameters('containerGroups_instanciadocker_name')]",
+            "location": "eastus",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_instanciadocker_name')]",
+                        "properties": {
+                            "image": "dockeretl.azurecr.io/etl-citas-app:latest",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 80
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "KEY_VAULT_URL",
+                                    "value": "https://keysazurev2.vault.azure.net/"
+                                },
+                                {
+                                    "name": "MYSQL_SSL_CA",
+                                    "value": "/usr/local/share/ca-certificates/DigiCertGlobalRootG2.crt.pem"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 0.5,
+                                    "cpu": 0.5
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "imageRegistryCredentials": [
+                    {
+                        "server": "dockeretl.azurecr.io",
+                        "username": "dockerETL"
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        }
+                    ],
+                    "type": "Public"
+                },
+                "osType": "Linux",
+                "diagnostics": {
+                    "logAnalytics": {
+                        "workspaceId": "22bc6342-dc98-4a5e-92e1-0b04ba7e547b",
+                        "logType": "ContainerInstanceLogs",
+                        "workspaceKey": "[parameters('containerGroups_instanciadocker_workspaceKey')]"
+                    }
+                }
+            }
+        }
+    ]
+}
